@@ -13,6 +13,8 @@ void randCol_Mode();
 void PowerControl(bool pwr);
 void PowerWhiteControl(bool pwr);
 void PowerWake();
+void BrightControl();
+void BrightEndAnim();
 
 void action();
 void build();
@@ -20,9 +22,13 @@ void build();
 uint8_t LightProcStep = 32;
 uint8_t PowerMode = 2; // 0 выкл, 1 вкл, 2 включение, 3 выключение
 uint8_t PowerWhiteMode = 0;
-uint8_t MODE = 0;
+uint8_t MODE = 1;
+uint32_t BrightTimer;
+uint8_t BrightMin = 10;
 
 boolean flag_ap = false, flag_load = false;
+
+boolean lastBright = 0;
 
 uint32_t randBow_time = 1000, randCol_Time = 500;
 

@@ -3,9 +3,9 @@
 #include <ESP8266WiFi.h>
 #include <AdRGB.h>
 #include <GyverButton.h>
-//#include <EEPROM.h>
+// #include <EEPROM.h>
 #include <SimplePortal.h>
-//#include <GyverHub.h>
+// #include <GyverHub.h>
 #include <GyverPortal.h>
 #include <GyverOS.h>
 #include <EEManager.h>
@@ -35,8 +35,8 @@
 ADRGB mystrip(REDOUT, GREENOUT, BLUEOUT, WHITEOUT);
 GButton butt1(BTN_PIN);
 GyverOS<5> OS;
-//gh::Color col(gh::Colors::Aqua);
-//GyverHub hub("MyDevices", "MettaLight", "");
+// gh::Color col(gh::Colors::Aqua);
+// GyverHub hub("MyDevices", "MettaLight", "");
 GyverPortal ui;
 
 // GHbutton b1, b2;
@@ -62,32 +62,38 @@ int valRad;
 
 EEManager memory(data);
 
-void build(){
+void build()
+{
   GP.BUILD_BEGIN(GP_DARK);
 
   GP.TITLE("MettaLed", "t1");
   GP.HR();
 
   GP.LABEL("Power: ");
-  GP.SWITCH("power", swCol);   //GP.BREAK();
+  GP.SWITCH("power", swCol); // GP.BREAK();
   GP.LABEL("Work: ");
-  GP.SWITCH("work", swWork);   GP.BREAK();
+  GP.SWITCH("work", swWork);
+  GP.BREAK();
 
   GP.LABEL("Bright: ");
-  GP.SLIDER("slCol", sld_br, 0, 100); GP.BREAK();
+  GP.SLIDER("slCol", sld_br, 0, 255);
+  GP.BREAK();
   GP.LABEL("White: ");
-  GP.SLIDER("slWk", sld_wbr, 0, 100); GP.BREAK();
+  GP.SLIDER("slWk", sld_wbr, 0, 255);
+  GP.BREAK();
 
   GP.NAV_TABS_M("tbs", "RANDOM,FIRE,COLOR");
 
   GP.NAV_BLOCK_BEGIN("tbs", 0);
   GP.LABEL("Smooth: ");
-  GP.SLIDER("ranSmth", sld_ran, 0, 100); GP.BREAK();
+  GP.SLIDER("ranSmth", sld_ran, 0, 100);
+  GP.BREAK();
   GP.NAV_BLOCK_END();
 
   GP.NAV_BLOCK_BEGIN("tbs", 1);
   GP.LABEL("Hue");
-  GP.SLIDER("slHue", sld_hue, 0, 255); GP.BREAK();
+  GP.SLIDER("slHue", sld_hue, 0, 255);
+  GP.BREAK();
   GP.NAV_BLOCK_END();
 
   GP.NAV_BLOCK_BEGIN("tbs", 2);
@@ -105,18 +111,19 @@ void setup()
   if (!digitalRead(BTN_PIN))
   {
     memory.reset();
+    mystrip.setAccel(255, 0, 0);
+    mystrip.tick();
     setup_portal();
 
-    //strcpy(data.SSID, "Quickness");
-    //strcpy(data.pass, "Nesquik666");
-    //memory.updateNow();
-    //ESP.reset();
+    // strcpy(data.SSID, "Quickness");
+    // strcpy(data.pass, "Nesquik666");
+    // memory.updateNow();
+    // ESP.reset();
   }
   else
   {
-//#ifdef GH_ESP_BUILD
-    //EEPROM.get(0, portalCfg); // достать параметры сети wifi из eeprom
-
+    // #ifdef GH_ESP_BUILD
+    // EEPROM.get(0, portalCfg); // достать параметры сети wifi из eeprom
 
     Serial.print("SSID: ");
     Serial.println(data.SSID);
@@ -126,9 +133,6 @@ void setup()
     WiFi.begin(data.SSID, data.pass);
 
     Timer_2 = millis();
-
-    mystrip.setAccelHEX(GP_WHITE);
-    mystrip.tick();
 
     while (WiFi.status() != WL_CONNECTED)
     {
@@ -148,10 +152,10 @@ void setup()
     Serial.println();
     Serial.println(WiFi.localIP());
 
-//#endif
+    // #endif
   }
   OS.attach(0, lightProcessor, LightProcStep);
-  OS.attach(1, butEvents, 10);
+  OS.attach(1, butEvents, 20);
 
   ui.attachBuild(build);
   ui.attach(action);
@@ -165,11 +169,13 @@ void loop()
   ui.tick();
 }
 
-void action() {
+void action()
+{
   // был клик по компоненту
-  if (ui.click()) {
+  if (ui.click())
+  {
     // проверяем компоненты и обновляем переменные
-    //Serial.println(ui.clickName());
+    // Serial.println(ui.clickName());
     // 1. переписали вручную
     /*if (ui.click("ch")) {
       valCheck = ui.getBool("ch");
@@ -178,77 +184,86 @@ void action() {
     }*/
 
     // 2. автоматическое обновление переменной
-    if (ui.clickBool("power", swCol)) {
+    if (ui.clickBool("power", swCol))
+    {
       Serial.print("Power: ");
       Serial.println(swCol);
       PowerControl(swCol);
     }
 
-    if (ui.clickBool("work", swWork)) {
+    if (ui.clickBool("work", swWork))
+    {
       Serial.print("Work: ");
       Serial.println(swWork);
       PowerWhiteControl(swWork);
     }
 
-    if (ui.clickInt("slCol", sld_br)) {
+    if (ui.clickInt("slCol", sld_br))
+    {
       Serial.print("Bright: ");
       Serial.println(sld_br);
       mystrip.setBrightSmooth(sld_br, MAIN_SMOOTH);
       PowerWake();
     }
 
-    if (ui.clickInt("slWk", sld_wbr)) {
+    if (ui.clickInt("slWk", sld_wbr))
+    {
       Serial.print("White: ");
       Serial.println(sld_wbr);
       mystrip.setBrightWSmooth(sld_wbr, MAIN_SMOOTH);
-      if (sld_wbr > 0) swWork = true;
+      if (sld_wbr > 0)
+        swWork = true;
     }
 
-    if (ui.clickInt("slHue", sld_hue)) {
+    if (ui.clickInt("slHue", sld_hue))
+    {
       Serial.print("Hue: ");
       Serial.println(sld_hue);
     }
 
-    if(ui.clickName().startsWith("tbs/")){
+    if (ui.clickName().startsWith("tbs/"))
+    {
       String index = ui.clickName();
-      index.remove(0,4);
+      index.remove(0, 4);
       MODE = index.toInt();
       Serial.print("Mode: ");
       Serial.println(MODE);
     }
-/*
-    if(ui.click("tbs/0")){
-      MODE = 0;
-      Serial.print("Mode: ");
-      Serial.println(MODE);
-    }
+    /*
+        if(ui.click("tbs/0")){
+          MODE = 0;
+          Serial.print("Mode: ");
+          Serial.println(MODE);
+        }
 
-    if(ui.click("tbs/1")){
-      MODE = 1;
-      Serial.print("Mode: ");
-      Serial.println(MODE);
-    }
+        if(ui.click("tbs/1")){
+          MODE = 1;
+          Serial.print("Mode: ");
+          Serial.println(MODE);
+        }
 
-    if(ui.click("tbs/2")){
-      MODE = 2;
-      Serial.print("Mode: ");
-      Serial.println(MODE);
-    }*/
+        if(ui.click("tbs/2")){
+          MODE = 2;
+          Serial.print("Mode: ");
+          Serial.println(MODE);
+        }*/
 
-    if (ui.clickInt("ranSmth", sld_ran)) {
+    if (ui.clickInt("ranSmth", sld_ran))
+    {
       Serial.print("Smooth: ");
       Serial.println(sld_ran);
-      //randBow_time = float(randBow_time * 2) * float(sld_ran) / 100.0;
-      randBow_time = sld_ran*20;
+      // randBow_time = float(randBow_time * 2) * float(sld_ran) / 100.0;
+      randBow_time = sld_ran * 20;
     }
 
-    if (ui.clickColor("colr", valCol)) {
+    if (ui.clickColor("colr", valCol))
+    {
       Serial.print("Color: ");
       Serial.println(valCol.encode());
       mystrip.setMoveHEX(valCol.getHEX(), MAIN_SMOOTH);
-      //mystrip.setMoveCol(0, valCol.g, MAIN_SMOOTH);
-      //mystrip.setMoveCol(1, valCol.r, MAIN_SMOOTH);
-      //mystrip.setMoveCol(2, valCol.b, MAIN_SMOOTH);
+      // mystrip.setMoveCol(0, valCol.g, MAIN_SMOOTH);
+      // mystrip.setMoveCol(1, valCol.r, MAIN_SMOOTH);
+      // mystrip.setMoveCol(2, valCol.b, MAIN_SMOOTH);
     }
 
     /*if (ui.clickString("txt", valText)) {
@@ -299,12 +314,18 @@ void devicesInit()
 {
   Serial.begin(115200);
   EEPROM.begin(1024);
+
+  valCol.setHEX(0x7366bd);
+
   byte stat = memory.begin(0, 'b');
 
   Serial.println(stat);
 
   mystrip.HighFrequency(true);
   mystrip.setMaxBright(99);
+
+  mystrip.setAccel(0, 0, 200);
+  mystrip.tick();
 
   if (USE_BUTTON)
   {
@@ -319,15 +340,15 @@ void devicesInit()
     butt1.setDirection(NORM_OPEN);
   }
 
-  mystrip.setMove(0, 0, 200, MAIN_SMOOTH);
-  mystrip.tick();
+  //mystrip.setMove(0, 0, 200, MAIN_SMOOTH);
+  //mystrip.tick();
 }
 
 void setup_portal()
 {
   Serial.println("HOLD, AP MODE");
 
-  mystrip.setAccelHEX(GP_BLUE_B);
+  mystrip.setAccelHEX(GP_YELLOW);
   mystrip.tick();
   portalRun(300000); // запустить с таймаутом 60с
   // portalRun(30000); // запустить с кастомным таймаутом
@@ -343,6 +364,7 @@ void setup_portal()
 
     Serial.println(data.SSID);
     Serial.println(data.pass);
+    memory.updateNow();
     // забираем логин-пароль
   }
   ESP.reset();
@@ -380,9 +402,9 @@ void lightProcessor()
     if (millis() - Timer_pwr > TIME_OFF)
       PowerMode = 0;
     break;
+  case 4:
+    BrightEndAnim();
   }
-  //if (PowerWhiteMode == 0 && swWork)
-    //hub.sendUpdate("work");
 }
 
 void butEvents()
@@ -391,6 +413,7 @@ void butEvents()
 
   if (butt1.isSingle())
   {
+    lastBright = 0;
     if (PowerMode == 0)
       PowerControl(1);
     else
@@ -398,10 +421,89 @@ void butEvents()
   }
   if (butt1.isDouble())
   {
+    lastBright = 1;
     if (PowerWhiteMode == 0)
       PowerWhiteControl(1);
     else
       PowerWhiteControl(0);
+  }
+  if (butt1.isHold())
+  {
+    if (PowerMode == 1)
+      BrightControl();
+  }
+}
+
+void BrightControl()
+{
+  static boolean brightDir;
+  if (!brightDir)
+  {
+    if (lastBright == false)
+    {
+      sld_br--;
+      if (sld_br == BrightMin)
+      {
+        brightDir = true;
+        BrightTimer = millis();
+        PowerMode = 4;
+      }
+      mystrip.setBright(sld_br);
+    }
+    else
+    {
+      sld_wbr--;
+      if (sld_wbr == BrightMin)
+      {
+        brightDir = true;
+        BrightTimer = millis();
+        PowerMode = 4;
+      }
+      mystrip.setBrightW(sld_wbr);
+    }
+  }
+  else
+  {
+    if (lastBright == false)
+    {
+      sld_br++;
+      if (sld_br >= 254)
+      {
+        brightDir = false;
+        BrightTimer = millis();
+        PowerMode = 4;
+      }
+      mystrip.setBright(sld_br);
+    }
+    else
+    {
+      sld_wbr++;
+      if (sld_wbr >= 254)
+      {
+        brightDir = false;
+        BrightTimer = millis();
+        PowerMode = 4;
+      }
+      mystrip.setBrightW(sld_wbr);
+    }
+  }
+}
+
+void BrightEndAnim()
+{
+  uint32_t calc = millis() - BrightTimer;
+  if (calc > 10 && calc < 20)
+    mystrip.setBright(100);
+    mystrip.setAccel(255, 255, 255);
+  if (calc > 400 && calc < 410)
+    mystrip.setAccel(0, 0, 0);
+  if (calc > 800 && calc < 810)
+    mystrip.setAccel(255, 255, 255);
+  if (calc > 1000)
+  {
+    mystrip.setAccel(0, 0, 0);
+    PowerMode = 1;
+    mystrip.setBright(sld_br);
   }
 }
 
@@ -411,7 +513,7 @@ void PowerControl(bool pwr)
   if (swCol != pwr)
   {
     swCol = pwr;
-    //hub.sendUpdate("power");
+    // hub.sendUpdate("power");
   }
 
   if (!pwr)
@@ -419,7 +521,7 @@ void PowerControl(bool pwr)
     PowerMode = 3;
     // PowerWhiteMode = 0;
     mystrip.setMove(0, 0, 0, TIME_OFF);
-    //hub.sendUpdate("work");
+    // hub.sendUpdate("work");
   }
   else
   {
@@ -443,7 +545,7 @@ void PowerWhiteControl(bool pwr)
   if (swWork != pwr)
   {
     swWork = pwr;
-    //hub.sendUpdate("work");
+    // hub.sendUpdate("work");
   }
   if (!pwr)
   {
