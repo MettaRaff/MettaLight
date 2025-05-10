@@ -9,12 +9,14 @@ void lightProcessor();
 void randBow_Mode();
 void classicFire_Mode();
 void randCol_Mode();
+void colrMusic_Mode();
 
 void PowerControl(bool pwr);
 void PowerWhiteControl(bool pwr);
 void PowerWake();
 void BrightControl();
 void BrightEndAnim();
+void SerialCall();
 
 void action();
 void build();
@@ -25,6 +27,8 @@ uint8_t PowerWhiteMode = 0;
 uint8_t MODE = 1;
 uint32_t BrightTimer;
 uint8_t BrightMin = 10;
+
+int intsCM[5];
 
 boolean flag_ap = false, flag_load = false;
 

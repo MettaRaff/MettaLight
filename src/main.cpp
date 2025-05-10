@@ -9,6 +9,7 @@
 #include <GyverPortal.h>
 #include <GyverOS.h>
 #include <EEManager.h>
+#include <Parser.h>
 
 // PINOUT
 #define REDOUT 12       // красный пин ленты
@@ -34,7 +35,7 @@
 
 ADRGB mystrip(REDOUT, GREENOUT, BLUEOUT, WHITEOUT);
 GButton butt1(BTN_PIN);
-GyverOS<5> OS;
+GyverOS<3> OS;
 // gh::Color col(gh::Colors::Aqua);
 // GyverHub hub("MyDevices", "MettaLight", "");
 GyverPortal ui;
@@ -76,13 +77,13 @@ void build()
   GP.BREAK();
 
   GP.LABEL("Bright: ");
-  GP.SLIDER("slCol", sld_br, 0, 255);
+  GP.SLIDER("slCol", sld_br, 0, 100);
   GP.BREAK();
   GP.LABEL("White: ");
-  GP.SLIDER("slWk", sld_wbr, 0, 255);
+  GP.SLIDER("slWk", sld_wbr, 0, 100);
   GP.BREAK();
 
-  GP.NAV_TABS_M("tbs", "RANDOM,FIRE,COLOR");
+  GP.NAV_TABS_M("tbs", "RANDOM,FIRE,COLOR,MUSIC");
 
   GP.NAV_BLOCK_BEGIN("tbs", 0);
   GP.LABEL("Smooth: ");
@@ -99,6 +100,11 @@ void build()
   GP.NAV_BLOCK_BEGIN("tbs", 2);
   GP.LABEL("Color");
   GP.COLOR("colr", valCol);
+  GP.NAV_BLOCK_END();
+
+  GP.NAV_BLOCK_BEGIN("tbs", 3);
+  GP.LABEL("Music");
+  //GP.COLOR("colr", valCol);
   GP.NAV_BLOCK_END();
 
   GP.BUILD_END();
@@ -156,6 +162,7 @@ void setup()
   }
   OS.attach(0, lightProcessor, LightProcStep);
   OS.attach(1, butEvents, 20);
+  OS.attach(2, SerialCall, 20);
 
   ui.attachBuild(build);
   ui.attach(action);
@@ -391,6 +398,9 @@ void lightProcessor()
     case 2:
       randCol_Mode();
       break;
+    case 3:
+      colrMusic_Mode();
+      break;
     }
 
     break;
@@ -405,6 +415,17 @@ void lightProcessor()
   case 4:
     BrightEndAnim();
   }
+}
+
+void SerialCall()
+{
+    if (Serial.available())
+    {
+        char buf[16];
+        Serial.readBytesUntil(';', buf, 16);
+        Parser data(buf, ',');
+        data.parseInts(intsCM);
+    }
 }
 
 void butEvents()
@@ -467,7 +488,7 @@ void BrightControl()
     if (lastBright == false)
     {
       sld_br++;
-      if (sld_br >= 254)
+      if (sld_br >= 99)
       {
         brightDir = false;
         BrightTimer = millis();
@@ -478,7 +499,7 @@ void BrightControl()
     else
     {
       sld_wbr++;
-      if (sld_wbr >= 254)
+      if (sld_wbr >= 99)
       {
         brightDir = false;
         BrightTimer = millis();
@@ -612,4 +633,10 @@ void randCol_Mode()
       }
     }
   }*/
+}
+
+void colrMusic_Mode()
+{
+  mystrip.setMove(intsCM[0], intsCM[1], intsCM[2], 20);
+  mystrip.setMoveW(intsCM[3], 20);
 }
