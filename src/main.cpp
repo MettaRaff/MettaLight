@@ -121,8 +121,8 @@ void setup()
     mystrip.tick();
     setup_portal();
 
-    // strcpy(data.SSID, "Quickness");
-    // strcpy(data.pass, "Nesquik666");
+    // strcpy(data.SSID, "Your-SSID");
+    // strcpy(data.pass, "Your-Pass");
     // memory.updateNow();
     // ESP.reset();
   }
