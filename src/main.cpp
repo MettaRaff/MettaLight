@@ -35,7 +35,7 @@
 
 ADRGB mystrip(REDOUT, GREENOUT, BLUEOUT, WHITEOUT);
 GButton butt1(BTN_PIN);
-GyverOS<3> OS;
+GyverOS<4> OS;
 // gh::Color col(gh::Colors::Aqua);
 // GyverHub hub("MyDevices", "MettaLight", "");
 GyverPortal ui;
@@ -43,7 +43,8 @@ GyverPortal ui;
 // GHbutton b1, b2;
 bool swPWR = 1, swCol = 1, swWork = 0, swRand = 0;
 int16_t sld_br = 100, sld_wbr = 100;
-uint8_t sld_hue = 160;
+uint8_t sld_hue = 160, sld_scale = 10, sld_smth = 5, sld_time = 200;
+float fireKoeff = 0.02;
 uint8_t offset = 35;
 uint8_t sld_ran = 50;
 
@@ -66,12 +67,12 @@ EEManager memory(data);
 void build()
 {
   GP.BUILD_BEGIN(GP_DARK);
-
+  GP.UPDATE("power,work,slCol,slWk");
   GP.TITLE("MettaLed", "t1");
   GP.HR();
 
   GP.LABEL("Power: ");
-  GP.SWITCH("power", swCol); // GP.BREAK();
+  GP.SWITCH("power", swCol);
   GP.LABEL("Work: ");
   GP.SWITCH("work", swWork);
   GP.BREAK();
@@ -95,6 +96,15 @@ void build()
   GP.LABEL("Hue");
   GP.SLIDER("slHue", sld_hue, 0, 255);
   GP.BREAK();
+  GP.LABEL("Scale");
+  GP.SLIDER("scale", sld_scale, 1, 30); // дольность заброса цвета
+  GP.BREAK();
+  GP.LABEL("Soft");
+  GP.SLIDER("slSmth", sld_smth, 2, 10); // сила сглаживания
+  GP.BREAK();
+  GP.LABEL("Speed");
+  GP.SLIDER("slSpd", sld_time, 50, 300); // сила сглаживания
+  GP.BREAK();
   GP.NAV_BLOCK_END();
 
   GP.NAV_BLOCK_BEGIN("tbs", 2);
@@ -104,7 +114,7 @@ void build()
 
   GP.NAV_BLOCK_BEGIN("tbs", 3);
   GP.LABEL("Music");
-  //GP.COLOR("colr", valCol);
+  // GP.COLOR("colr", valCol);
   GP.NAV_BLOCK_END();
 
   GP.BUILD_END();
@@ -163,6 +173,7 @@ void setup()
   OS.attach(0, lightProcessor, LightProcStep);
   OS.attach(1, butEvents, 20);
   OS.attach(2, SerialCall, 20);
+  OS.attach(3, checkUi, 1000);
 
   ui.attachBuild(build);
   ui.attach(action);
@@ -226,6 +237,14 @@ void action()
     {
       Serial.print("Hue: ");
       Serial.println(sld_hue);
+    }
+
+    if (ui.clickInt("slSmth", sld_smth))
+    {
+      uint16_t bigKoeff = sld_smth * 25;
+      fireKoeff = float(bigKoeff / 10000.0);
+      Serial.print("Smooth: ");
+      Serial.println(fireKoeff);
     }
 
     if (ui.clickName().startsWith("tbs/"))
@@ -315,6 +334,14 @@ void action()
     if (ui.click("btn")) Serial.println("Button click");
     */
   }
+
+  if (ui.update())
+  {
+    ui.updateInt("slCol", sld_br);
+    ui.updateInt("slWk", sld_wbr);
+    ui.updateBool("power", swCol);
+    ui.updateBool("work", swWork);
+  }
 }
 
 void devicesInit()
@@ -347,8 +374,8 @@ void devicesInit()
     butt1.setDirection(NORM_OPEN);
   }
 
-  //mystrip.setMove(0, 0, 200, MAIN_SMOOTH);
-  //mystrip.tick();
+  // mystrip.setMove(0, 0, 200, MAIN_SMOOTH);
+  // mystrip.tick();
 }
 
 void setup_portal()
@@ -375,6 +402,13 @@ void setup_portal()
     // забираем логин-пароль
   }
   ESP.reset();
+}
+
+void checkUi()
+{
+  Serial.print("UI state: ");
+  Serial.print(WiFi.status());
+  Serial.println(ui.state());
 }
 
 void lightProcessor()
@@ -419,13 +453,13 @@ void lightProcessor()
 
 void SerialCall()
 {
-    if (Serial.available())
-    {
-        char buf[16];
-        Serial.readBytesUntil(';', buf, 16);
-        Parser data(buf, ',');
-        data.parseInts(intsCM);
-    }
+  if (Serial.available())
+  {
+    char buf[16];
+    Serial.readBytesUntil(';', buf, 16);
+    Parser data(buf, ',');
+    data.parseInts(intsCM);
+  }
 }
 
 void butEvents()
@@ -439,6 +473,7 @@ void butEvents()
       PowerControl(1);
     else
       PowerControl(0);
+    // PowerWhiteControl(0);
   }
   if (butt1.isDouble())
   {
@@ -514,8 +549,10 @@ void BrightEndAnim()
 {
   uint32_t calc = millis() - BrightTimer;
   if (calc > 10 && calc < 20)
+  {
     mystrip.setBright(100);
     mystrip.setAccel(255, 255, 255);
+  }
   if (calc > 400 && calc < 410)
     mystrip.setAccel(0, 0, 0);
   if (calc > 800 && calc < 810)
@@ -539,16 +576,18 @@ void PowerControl(bool pwr)
 
   if (!pwr)
   {
-    PowerMode = 3;
-    // PowerWhiteMode = 0;
+    PowerMode = 3; // выключение
+    PowerWhiteControl(0);
     mystrip.setMove(0, 0, 0, TIME_OFF);
-    // hub.sendUpdate("work");
   }
   else
   {
-    PowerMode = 2;
-    if (MODE == 2)
-      mystrip.setMoveHEX(valCol.getHEX(), TIME_ON);
+    if (MODE != 2)
+    {
+      PowerMode = 1;
+    }
+    else
+      PowerMode = 2;
   }
 }
 
@@ -594,13 +633,13 @@ void classicFire_Mode()
   static byte fireRnd = 0;
   static float fireValue = 0;
 
-  if (millis() - Timer_1 > 200)
+  if (millis() - Timer_1 > sld_time)
   {
     Timer_1 = millis();
     fireRnd = random(0, 10);
   }
 
-  fireValue = (float)fireValue * (1 - 0.02) + (float)fireRnd * 10 * 0.02;
+  fireValue = (float)fireValue * (1 - fireKoeff) + (float)fireRnd * sld_scale * fireKoeff;
 
   uint8_t hue = constrain(map(fireValue, 20, 60, sld_hue, sld_hue + 60), 0, 255);
   uint8_t sat = constrain(map(fireValue, 20, 60, 255, 240), 0, 255);

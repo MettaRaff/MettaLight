@@ -4,6 +4,7 @@ void devicesInit();
 void setup_portal();
 
 void butEvents();
+void checkUi();
 void lightProcessor();
 
 void randBow_Mode();
@@ -22,7 +23,8 @@ void action();
 void build();
 
 uint8_t LightProcStep = 32;
-uint8_t PowerMode = 2; // 0 выкл, 1 вкл, 2 включение, 3 выключение
+uint8_t PowerMode = 2; 
+// 0 выкл, 1 вкл, 2 включение, 3 выключение, 4 end anim
 uint8_t PowerWhiteMode = 0;
 uint8_t MODE = 1;
 uint32_t BrightTimer;
