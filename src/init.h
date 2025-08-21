@@ -1,4 +1,6 @@
-#include <ESP8266WiFi.h>
+#include "LIBS.h"
+#include "Settings.h"
+#include "GPortal.h"
 
 void devicesInit();
 void setup_portal();
@@ -19,10 +21,42 @@ void BrightControl();
 void BrightEndAnim();
 void SerialCall();
 
-void action();
-void build();
+struct Data
+{
+    char SSID[32] = "";
+    char pass[32] = "";
+}data;
 
-uint8_t LightProcStep = 32;
+ADRGB mystrip(REDOUT, GREENOUT, BLUEOUT, WHITEOUT);
+GButton butt1(BTN_PIN);
+GyverOS<4> OS;
+GyverPortal ui;
+
+bool swPWR = 1, swCol = 1, swWork = 0, swRand = 0;
+int16_t sld_br = 100, sld_wbr = 100;
+uint8_t sld_hue = 160, sld_scale = 10, sld_smth = 5, sld_time = 200;
+float fireKoeff = 0.02;
+uint8_t offset = 35;
+uint8_t sld_ran = 50;
+
+// переменные
+bool valCheck;
+bool valSwitch;
+String valText;
+int valNum;
+char valPass[10];
+float valSpin;
+int valSlider;
+GPdate valDate;
+GPtime valTime;
+GPcolor valCol;
+int valSelect;
+int valRad;
+uint8_t endAnimMode = 0;
+
+EEManager memory(data);
+
+uint8_t LightProcStep = 32; // частота обработки света
 uint8_t PowerMode = 2; 
 // 0 выкл, 1 вкл, 2 включение, 3 выключение, 4 end anim
 uint8_t PowerWhiteMode = 0;
@@ -39,11 +73,3 @@ boolean lastBright = 0;
 uint32_t randBow_time = 1000, randCol_Time = 500;
 
 uint32_t Timer_Light_Proc, Timer_pwr, Timer_1, Timer_2;
-
-struct Data
-{
-    char SSID[32] = "";
-    char pass[32] = "";
-};
-
-Data data;
