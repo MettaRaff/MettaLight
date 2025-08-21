@@ -1,32 +1,13 @@
+#ifndef init_h
+#define init_h
+
 #include "LIBS.h"
 #include "Settings.h"
 #include "GPortal.h"
 #include "PowerControl.h"
-
-void devicesInit();
-void setup_portal();
-
-void butEvents();
-void checkUi();
-void lightProcessor();
-
-void randBow_Mode();
-void classicFire_Mode();
-void randCol_Mode();
-void colrMusic_Mode();
-
-
-
-
-
-void BrightEndAnim();
-void SerialCall();
-
-struct Data
-{
-    char SSID[32] = "";
-    char pass[32] = "";
-}data;
+#include "Modes.h"
+#include "DeviceInit.h"
+#include "CoreCycle.h"
 
 ADRGB mystrip(REDOUT, GREENOUT, BLUEOUT, WHITEOUT);
 GButton butt1(BTN_PIN);
@@ -39,6 +20,8 @@ uint8_t sld_hue = 160, sld_scale = 10, sld_smth = 5, sld_time = 200;
 float fireKoeff = 0.02;
 uint8_t offset = 35;
 uint8_t sld_ran = 50;
+
+Data data;
 
 // переменные
 bool valCheck;
@@ -63,7 +46,7 @@ uint8_t PowerMode = 2;
 uint8_t PowerWhiteMode = 0;
 uint8_t MODE = 1;
 uint32_t BrightTimer;
-uint8_t BrightMin = 10;
+uint8_t BrightMin = BRIGHTMIN;
 
 int intsCM[5];
 
@@ -74,3 +57,5 @@ boolean lastBright = 0;
 uint32_t randBow_time = 1000, randCol_Time = 500;
 
 uint32_t Timer_Light_Proc, Timer_pwr, Timer_1, Timer_2;
+
+#endif

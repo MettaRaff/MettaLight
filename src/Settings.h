@@ -23,4 +23,14 @@
 #define GH_ASYNC true
 // SYSTEM PARAMS
 
+// VALUES
+#define BRIGHTMIN 10 // 0-100 минимальная яркость при регулировке с кнопки
+// VALUES
+
+struct Data
+{
+    char SSID[32] = "";
+    char pass[32] = "";
+};
+
 #endif
