@@ -4,23 +4,15 @@ void setup()
 {
   devicesInit();
 
-  if (!digitalRead(BTN_PIN))
+  if (!digitalRead(BTN_PIN)) // если удерживается кнопка при запуске
   {
     memory.reset();
     mystrip.setAccel(255, 0, 0);
     mystrip.tick();
-    setup_portal();
-
-    // strcpy(data.SSID, "Your-SSID");
-    // strcpy(data.pass, "Your-Pass");
-    // memory.updateNow();
-    // ESP.reset();
+    setup_portal(); // запустить модем для внесения настройки wifi
   }
-  else
+  else // обычный старт
   {
-    // #ifdef GH_ESP_BUILD
-    // EEPROM.get(0, portalCfg); // достать параметры сети wifi из eeprom
-
     Serial.print("SSID: ");
     Serial.println(data.SSID);
     Serial.print("pass: ");
@@ -34,16 +26,16 @@ void setup()
     {
       delay(500);
       Serial.print(".");
-      if (millis() - Timer_2 > DELAY_CONNECT)
+      if (millis() - Timer_2 > DELAY_CONNECT) // если не удалось подключиться в течении тайм-аута
       {
         mystrip.setAccelHEX(GP_PINK_B);
-        flag_ap = true;
+        flag_ap = true; // поднять флаг чтоб снова запустить модем
         break;
       }
     }
 
     if (flag_ap)
-      setup_portal();
+      setup_portal(); // запустить модем для внесения настройки wifi
 
     Serial.println();
     Serial.println(WiFi.localIP());
@@ -314,59 +306,9 @@ void BrightEndAnim()
   }
 }
 
-void PowerControl(bool pwr)
-{
-  Timer_pwr = millis();
-  if (swCol != pwr)
-  {
-    swCol = pwr;
-    // hub.sendUpdate("power");
-  }
 
-  if (!pwr)
-  {
-    PowerMode = 3; // выключение
-    PowerWhiteControl(0);
-    mystrip.setMove(0, 0, 0, TIME_OFF);
-  }
-  else
-  {
-    if (MODE != 2)
-    {
-      PowerMode = 1;
-    }
-    else
-      PowerMode = 2;
-  }
-}
 
-void PowerWake()
-{
-  if (PowerMode != 1)
-  {
-    swCol = true;
-    PowerControl(swCol);
-  }
-}
 
-void PowerWhiteControl(bool pwr)
-{
-  if (swWork != pwr)
-  {
-    swWork = pwr;
-    // hub.sendUpdate("work");
-  }
-  if (!pwr)
-  {
-    mystrip.setMoveW(0, TIME_OFF);
-    PowerWhiteMode = 0;
-  }
-  else
-  {
-    mystrip.setBrightWSmooth(sld_wbr, TIME_ON);
-    PowerWhiteMode = 1;
-  }
-}
 
 void randBow_Mode()
 {

@@ -1,6 +1,7 @@
 #include "LIBS.h"
 #include "Settings.h"
 #include "GPortal.h"
+#include "PowerControl.h"
 
 void devicesInit();
 void setup_portal();
@@ -14,10 +15,10 @@ void classicFire_Mode();
 void randCol_Mode();
 void colrMusic_Mode();
 
-void PowerControl(bool pwr);
-void PowerWhiteControl(bool pwr);
-void PowerWake();
-void BrightControl();
+
+
+
+
 void BrightEndAnim();
 void SerialCall();
 
