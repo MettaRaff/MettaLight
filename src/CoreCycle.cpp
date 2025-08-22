@@ -64,9 +64,10 @@ void butEvents()
   }
   if (butt1.isHold())
   {
-    if (PowerMode == 1)
+    if (PowerMode == 1 && !BrightEndHolded)
       BrightControl();
   }
+  if (butt1.isRelease()) BrightEndHolded = false;
 }
 
 void SerialCall()

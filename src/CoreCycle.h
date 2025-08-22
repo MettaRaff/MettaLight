@@ -10,6 +10,7 @@ extern uint8_t MODE;
 extern boolean lastBright;
 extern int intsCM[];
 extern Data data;
+extern boolean BrightEndHolded;
 
 extern ADRGB mystrip;
 extern GButton butt1;

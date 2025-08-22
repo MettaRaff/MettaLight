@@ -14,9 +14,11 @@ void PowerControl(bool pwr)
     PowerMode = 3; // выключение
     PowerWhiteControl(0);
     mystrip.setMove(0, 0, 0, TIME_OFF);
+    mystrip.setBrightSmooth(0, TIME_OFF);
   }
   else
   {
+    mystrip.setBrightSmooth(sld_br, TIME_ON);
     if (MODE != 2)
     {
       PowerMode = 1;
@@ -54,71 +56,55 @@ void PowerWake()
   }
 }
 
+// вычисляет новую яркость при удержании кнопки
 void BrightControl()
 {
-  static boolean brightDir;
+  if (!lastBright && brightDir[0])
+    sld_br++; // режим яркости цвета в +
+  if (!lastBright && !brightDir[0])
+    sld_br--; // режим яркости цвета в -
+  if (lastBright && brightDir[1])
+    sld_wbr++; // режим яркости цвета в +
+  if (lastBright && !brightDir[1])
+    sld_wbr--; // режим яркости цвета в -
 
-  // Serial.print("Bright state: ");
-  // Serial.print(brightDir);
-  // Serial.print(lastBright);
-  // Serial.print(sld_br);
-  // Serial.println(sld_wbr);
-
-  if (!brightDir) // на понижение яркости
+  if (!lastBright && sld_br == BrightMin)
   {
-    if (lastBright == false) // последним был цветной
-    {
-      sld_br--;
-      if (sld_br <= BrightMin)
-      {
-        sld_br = BrightMin;
-        brightDir = true;
-        BrightTimer = millis();
-        PowerMode = 4;
-        endAnimMode = 1;
-        Serial.println("Min end of color");
-      }
-      mystrip.setBright(sld_br);
-    }
-    else // последним был белый
-    {
-      sld_wbr--;
-      if (sld_wbr == BrightMin)
-      {
-        brightDir = true;
-        BrightTimer = millis();
-        PowerMode = 4;
-        endAnimMode = 3;
-      }
-      mystrip.setBrightW(sld_wbr);
-    }
+    BrightEndHolded = true;
+    brightDir[0] = true;
+    endAnimMode = 1;
   }
-  else // на повышение яркости
+
+  if (!lastBright && sld_br == 100)
   {
-    if (lastBright == false) // последним был цветной
-    {
-      sld_br++;
-      if (sld_br >= 99)
-      {
-        brightDir = false;
-        BrightTimer = millis();
-        PowerMode = 4;
-        endAnimMode = 0;
-      }
-      mystrip.setBright(sld_br);
-    }
-    else // последним был белый
-    {
-      sld_wbr++;
-      if (sld_wbr >= 99)
-      {
-        brightDir = false;
-        BrightTimer = millis();
-        PowerMode = 4;
-        endAnimMode = 2;
-      }
-      mystrip.setBrightW(sld_wbr);
-    }
+    BrightEndHolded = true;
+    brightDir[0] = false;
+    endAnimMode = 0;
+  }
+
+  if (lastBright && sld_wbr == BrightMin)
+  {
+    BrightEndHolded = true;
+    brightDir[1] = true;
+    endAnimMode = 3;
+  }
+
+  if (lastBright && sld_wbr == 100)
+  {
+    BrightEndHolded = true;
+    brightDir[1] = false;
+    endAnimMode = 2;
+  }
+
+  if (!lastBright)
+    mystrip.setBright(sld_br);
+  if (lastBright)
+    mystrip.setBrightW(sld_wbr);
+
+  if (BrightEndHolded)
+  {                         // флаг что дошли до предела, пока кнопка не отпустится не менять яркость
+    BrightTimer = millis(); // обнуляем таймер для анимации края
+    PowerMode = 4;          // меняем режим с обычного на проигр анимации края
   }
 }
 
@@ -130,23 +116,28 @@ void BrightEndAnim()
   // 2 - max white
   // 3 - min white
   uint32_t calc = millis() - BrightTimer;
-  Serial.print("Bright anim func! calc time: ");
-  Serial.println(calc);
-  if (calc > 10 && calc < 20)
+  if (calc > 0 && calc < 40)
   {
+    Serial.print("EndAnimMode: ");
+    Serial.println(endAnimMode);
     mystrip.setBright(100);
-    if (swWork) mystrip.setBrightW(0);
     if (endAnimMode == 0 || endAnimMode == 2)
-      mystrip.setAccel(255, 255, 255);
+      mystrip.setAccel(0, 255, 0);
     if (endAnimMode == 1 || endAnimMode == 3)
       mystrip.setAccel(255, 0, 0);
   }
 
+  if (calc >= 900 && calc < 940)
+  {
+    Serial.println("It dis signal block!");
+    mystrip.setAccel(0, 0, 0);
+    mystrip.setBright(sld_br);
+    // if (swWork) mystrip.setBrightW(sld_wbr);
+  }
+
   if (calc > 1000)
   {
-    mystrip.setAccel(0, 0, 0);
+    Serial.println("It exit signal block!");
     PowerMode = 1;
-    mystrip.setBright(sld_br);
-    if (swWork) mystrip.setBrightW(sld_wbr);
   }
 }

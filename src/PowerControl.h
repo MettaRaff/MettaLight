@@ -19,6 +19,8 @@ extern boolean lastBright;
 extern uint8_t BrightMin;
 extern uint32_t BrightTimer;
 extern uint8_t endAnimMode;
+extern boolean BrightEndHolded;
+extern boolean brightDir[];
 
 extern ADRGB mystrip;
 

@@ -13,6 +13,7 @@ ADRGB mystrip(REDOUT, GREENOUT, BLUEOUT, WHITEOUT);
 GButton butt1(BTN_PIN);
 GyverOS<4> OS;
 GyverPortal ui;
+EEManager memory(data);
 
 bool swPWR = 1, swCol = 1, swWork = 0, swRand = 0;
 int16_t sld_br = 100, sld_wbr = 100;
@@ -38,8 +39,6 @@ int valSelect;
 int valRad;
 uint8_t endAnimMode = 0;
 
-EEManager memory(data);
-
 uint8_t LightProcStep = 32; // частота обработки света
 uint8_t PowerMode = 2; 
 // 0 выкл, 1 вкл, 2 включение, 3 выключение, 4 end anim
@@ -52,7 +51,10 @@ int intsCM[5];
 
 boolean flag_ap = false, flag_load = false;
 
-boolean lastBright = 0;
+boolean lastBright = 0; // последним меняли цвет(0) или белый(1)
+boolean brightDir[2]; // направление смены цвета и белого
+
+boolean BrightEndHolded = false; // при удержании кнопки дошли до края яркости
 
 uint32_t randBow_time = 1000, randCol_Time = 500;
 
