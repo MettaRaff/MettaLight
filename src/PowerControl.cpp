@@ -118,8 +118,6 @@ void BrightEndAnim()
   uint32_t calc = millis() - BrightTimer;
   if (calc > 0 && calc < 40)
   {
-    Serial.print("EndAnimMode: ");
-    Serial.println(endAnimMode);
     mystrip.setBright(100);
     if (endAnimMode == 0 || endAnimMode == 2)
       mystrip.setAccel(0, 255, 0);
@@ -129,15 +127,12 @@ void BrightEndAnim()
 
   if (calc >= 900 && calc < 940)
   {
-    Serial.println("It dis signal block!");
     mystrip.setAccel(0, 0, 0);
     mystrip.setBright(sld_br);
-    // if (swWork) mystrip.setBrightW(sld_wbr);
   }
 
   if (calc > 1000)
   {
-    Serial.println("It exit signal block!");
     PowerMode = 1;
   }
 }

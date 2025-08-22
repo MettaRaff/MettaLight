@@ -128,14 +128,13 @@ void action()
             Serial.print("Color: ");
             Serial.println(valCol.encode());
             mystrip.setMoveHEX(valCol.getHEX(), MAIN_SMOOTH);
-        }
-
-        if (ui.update())
+        }        
+    }
+    if (ui.update())
         {
             ui.updateInt("slCol", sld_br);
             ui.updateInt("slWk", sld_wbr);
             ui.updateBool("power", swCol);
             ui.updateBool("work", swWork);
         }
-    }
 }
